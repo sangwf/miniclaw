@@ -4,7 +4,7 @@
 Upgrade `miniclaw` from a plain CLI chat loop into an LLM-first coding shell with real session workspace state, visible tool-call traces in the terminal, safer temporary execution primitives, a safer patch-based edit path for existing files, paste-friendly multiline input, basic web research tools, a small persistent Markdown memory, a few high-value read-only Twitter/X tools, and a harness-first browser capability with deterministic fixtures, a standalone runner, and first-class `browser_*` tools.
 
 ## Current Phase
-Phase 13 complete
+Phase 14 complete
 
 ## Phases
 ### Phase 1: Requirements & Discovery
@@ -99,6 +99,14 @@ Phase 13 complete
 - [x] Tighten browser guidance so explicit open/search/click requests are executed in order instead of shortcutting to a guessed destination page
 - **Status:** complete
 
+### Phase 14: Public GitHub Release
+- [x] Check git state, remote configuration, and GitHub authentication
+- [x] Run a minimal repository hygiene pass before publishing
+- [x] Add a minimal public-facing README
+- [x] Commit the current project state
+- [x] Create the public GitHub repository and push `main`
+- **Status:** complete
+
 ## Key Questions
 1. How can workspace state be real and mutable without requiring explicit slash commands?
 2. Which tools are enough to start coding inside a workspace?
@@ -137,6 +145,7 @@ Phase 13 complete
 | Keep the first browser harness executable outside the main agent loop | A standalone runner makes executor debugging and acceptance testing simpler before tool integration |
 | Share browser execution code between the standalone harness and the tool layer | Separate browser implementations would drift and invalidate the harness-first design |
 | Treat explicit browser interaction requests as ordered UI steps | Users may care about the actual path through the page, not just the final answer, and honoring that path reduces unnecessary fallbacks to generic web tools |
+| Add a minimal README before publishing the repository | A public repo should at least explain what the project is, how to run it, and what the browser harness files are for |
 
 ## Errors Encountered
 | Error | Attempt | Resolution |
@@ -171,3 +180,4 @@ Phase 13 complete
 - `requirements-browser.txt` keeps Playwright optional instead of forcing the dependency into the base CLI install path.
 - Browser runtime logic now lives in `browser_runtime.py` and is shared by both the standalone harness runner and the `browser_*` tools.
 - When the user explicitly says to open a site and then search, click, or type inside it, the agent should stay on the browser path and execute those steps in order before summarizing.
+- The public remote for this project is `https://github.com/sangwf/miniclaw`.

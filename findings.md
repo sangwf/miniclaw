@@ -80,6 +80,7 @@
 - The browser tool layer can already operate successfully against the local fixture server when run inside a Python environment that has Playwright installed.
 - Browser step fidelity needs an extra instruction layer: for explicit requests like “open site, search term, then summarize”, the model otherwise tends to optimize for the final answer and may skip the requested on-page interaction sequence.
 - A short per-turn browser-sequence note works better than relying on generic browser preferences alone, because it only activates when the user explicitly asks for ordered UI actions.
+- The repo had no remote and no README, but GitHub CLI was already authenticated as `sangwf`, so a minimal public release path was: add README, commit locally, create `sangwf/miniclaw` as a public repo, and push `main`.
 - On this machine, the Homebrew-managed `python3` rejects direct global `pip install` under PEP 668, but `python3 -m pip install --user --break-system-packages ...` works and still makes `playwright` importable from the default interpreter.
 
 ## Technical Decisions

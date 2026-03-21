@@ -200,6 +200,19 @@
   - `/Users/sangwf/code/miniclaw/findings.md` (updated)
   - `/Users/sangwf/code/miniclaw/progress.md` (updated)
 
+### Phase 14: Public GitHub Release
+- **Status:** complete
+- Actions taken:
+  - Checked the local git state, confirmed there was no remote, and verified `gh` authentication for account `sangwf`.
+  - Ran a minimal public-release hygiene pass: validated `.gitignore`, checked for obvious secrets, and added a short `README.md`.
+  - Committed the current project state as `Build miniclaw coding shell`.
+  - Created the public GitHub repository `sangwf/miniclaw` and pushed `main`.
+- Files created/modified:
+  - `/Users/sangwf/code/miniclaw/README.md` (created)
+  - `/Users/sangwf/code/miniclaw/task_plan.md` (updated)
+  - `/Users/sangwf/code/miniclaw/findings.md` (updated)
+  - `/Users/sangwf/code/miniclaw/progress.md` (updated)
+
 ## Test Results
 | Test | Input | Expected | Actual | Status |
 |------|-------|----------|--------|--------|
@@ -245,6 +258,7 @@
 | Default python3 browser smoke | Direct `ToolRegistry.run(...)` calls for `browser_navigate`, `browser_act`, `browser_extract`, and `browser_close` using `/opt/homebrew/bin/python3` | The default interpreter can use browser tools after user-site Playwright install | Passed | ✓ |
 | Public-web browser smoke | Direct `ToolRegistry.run(...)` calls against `https://www.wikipedia.org/` to search for `Andrej Karpathy` and extract the destination page text using default `python3` | Real public-site navigation, typing, clicking, extraction, and close all work in the default interpreter | Passed (`current_url=https://en.wikipedia.org/wiki/Andrej_Karpathy`) | ✓ |
 | Live ordered-browser agent smoke | Real `Agent.run_turn(...)` with `gpt-5.4-mini`: `打开 wikipedia，搜索 Andrej Karpathy，再总结首页前两段` | The agent should open Wikipedia first, then type/search on-page, and summarize from the browser session without falling back to generic web tools | Passed (`browser_navigate -> browser_act(type) -> browser_act(press)` then final reply) | ✓ |
+| Public GitHub release | `gh repo create sangwf/miniclaw --public --source=... --remote=origin --push` | Create a public repository and push the current `main` branch | Passed (`https://github.com/sangwf/miniclaw`) | ✓ |
 
 ## Error Log
 | Timestamp | Error | Attempt | Resolution |
@@ -259,11 +273,11 @@
 ## 5-Question Reboot Check
 | Question | Answer |
 |----------|--------|
-| Where am I? | Phase 13 complete |
+| Where am I? | Phase 14 complete |
 | Where am I going? | The next phase is turning the current browser tools into a more agent-friendly experience with stronger element targeting and richer browser state management |
 | What's the goal? | Build an LLM-first coding shell with real workspace state, safe editing primitives, usable terminal interaction, basic external research, lightweight persistent memory, persisted chat transcripts, cache-friendly prompts, direct Twitter/X read tools, and a harness-first browser capability |
 | What have I learned? | Natural-language interaction can stay flexible if workspace state and tool boundaries are enforced in runtime |
-| What have I done? | Implemented session state, workspace-aware tools, visible tool traces, a structured patch tool, paste-friendly multiline input, basic web research tools, a small persistent Markdown memory, per-session chat transcripts, prompt-cache-aware usage reporting, direct read-only Twitter/X tools, a harness-first browser design package, a passing standalone browser acceptance runner, and first-class `browser_*` tools backed by the shared browser runtime |
+| What have I done? | Implemented session state, workspace-aware tools, visible tool traces, a structured patch tool, paste-friendly multiline input, basic web research tools, a small persistent Markdown memory, per-session chat transcripts, prompt-cache-aware usage reporting, direct read-only Twitter/X tools, a harness-first browser design package, a passing standalone browser acceptance runner, first-class `browser_*` tools backed by the shared browser runtime, and published the project as a public GitHub repository |
 
 ## Research Notes
 - Reviewed the OpenClaw-RL paper ([arXiv:2603.10165](https://arxiv.org/pdf/2603.10165)) and project repository ([Gen-Verse/OpenClaw-RL](https://github.com/Gen-Verse/OpenClaw-RL)).

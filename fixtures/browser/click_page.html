@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Click Demo</title>
+    <style>
+      body {
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        margin: 40px;
+        background: #f6f7fb;
+        color: #111827;
+      }
+      .card {
+        max-width: 640px;
+        background: white;
+        border: 1px solid #d1d5db;
+        padding: 24px;
+      }
+      button {
+        border: 0;
+        padding: 12px 18px;
+        background: #0f766e;
+        color: white;
+        cursor: pointer;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      .message {
+        margin-top: 18px;
+        padding: 14px;
+        background: #ecfeff;
+        border: 1px solid #a5f3fc;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="card">
+      <h1>Click Demo</h1>
+      <p data-testid="instructions">Click the button to reveal the hidden acceptance text.</p>
+      <button type="button" data-testid="reveal-button">Reveal Message</button>
+      <div class="message" data-testid="revealed-message" hidden>
+        Revealed acceptance message: The hidden panel is now visible.
+      </div>
+    </section>
+    <script>
+      const revealButton = document.querySelector("[data-testid='reveal-button']");
+      const revealed = document.querySelector("[data-testid='revealed-message']");
+      revealButton.addEventListener("click", () => {
+        revealed.hidden = false;
+      });
+    </script>
+  </body>
+</html>

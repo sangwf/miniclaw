@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Search Demo</title>
+    <style>
+      body {
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        margin: 40px auto;
+        max-width: 760px;
+        color: #111827;
+      }
+      .toolbar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      input {
+        flex: 1;
+        padding: 10px 12px;
+      }
+      button {
+        padding: 10px 16px;
+        border: 0;
+        background: #1d4ed8;
+        color: white;
+      }
+      li {
+        margin: 8px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Search Demo</h1>
+      <div class="toolbar">
+        <label for="query" class="sr-only">Query</label>
+        <input id="query" data-testid="query" placeholder="Search term" />
+        <button type="button" data-testid="submit">Search</button>
+      </div>
+      <ul data-testid="results"></ul>
+    </main>
+    <script>
+      const data = {
+        apple: ["Apple Pie", "Apple Cider", "Apple Jam"],
+        banana: ["Banana Bread", "Banana Split", "Banana Chips"],
+        citrus: ["Orange Peel", "Lemon Tart", "Grapefruit Soda"]
+      };
+
+      const queryInput = document.querySelector("[data-testid='query']");
+      const submitButton = document.querySelector("[data-testid='submit']");
+      const results = document.querySelector("[data-testid='results']");
+
+      function render(items) {
+        results.innerHTML = "";
+        items.forEach((item) => {
+          const li = document.createElement("li");
+          li.textContent = item;
+          li.dataset.testid = "result-item";
+          li.setAttribute("data-testid", "result-item");
+          results.appendChild(li);
+        });
+      }
+
+      submitButton.addEventListener("click", () => {
+        const key = queryInput.value.trim().toLowerCase();
+        render(data[key] || ["No Results"]);
+      });
+    </script>
+  </body>
+</html>

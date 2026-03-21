@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Form Demo</title>
+    <style>
+      body {
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        margin: 32px auto;
+        max-width: 680px;
+        color: #111827;
+      }
+      form {
+        display: grid;
+        gap: 14px;
+      }
+      input {
+        padding: 10px 12px;
+      }
+      button {
+        width: fit-content;
+        padding: 10px 18px;
+        border: 0;
+        background: #7c3aed;
+        color: white;
+      }
+      .success {
+        margin-top: 20px;
+        padding: 14px;
+        background: #f0fdf4;
+        border: 1px solid #86efac;
+      }
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Form Demo</h1>
+      <form data-testid="contact-form">
+        <label>
+          Name
+          <input data-testid="name" name="name" />
+        </label>
+        <label>
+          Email
+          <input data-testid="email" name="email" />
+        </label>
+        <button type="submit" data-testid="submit">Submit</button>
+      </form>
+
+      <div class="success" data-testid="success-banner" hidden>
+        Submission complete.
+        <div>Name: <span data-testid="result-name"></span></div>
+        <div>Email: <span data-testid="result-email"></span></div>
+      </div>
+    </main>
+    <script>
+      const form = document.querySelector("[data-testid='contact-form']");
+      const banner = document.querySelector("[data-testid='success-banner']");
+      const resultName = document.querySelector("[data-testid='result-name']");
+      const resultEmail = document.querySelector("[data-testid='result-email']");
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        resultName.textContent = formData.get("name") || "";
+        resultEmail.textContent = formData.get("email") || "";
+        banner.hidden = false;
+      });
+    </script>
+  </body>
+</html>

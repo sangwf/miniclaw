@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dynamic Demo</title>
+    <style>
+      body {
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        margin: 36px auto;
+        max-width: 680px;
+        color: #111827;
+      }
+      button {
+        padding: 10px 18px;
+        border: 0;
+        background: #b45309;
+        color: white;
+      }
+      .panel {
+        margin-top: 20px;
+        padding: 16px;
+        background: #fff7ed;
+        border: 1px solid #fdba74;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Dynamic Demo</h1>
+      <button type="button" data-testid="load-button">Load Content</button>
+      <div class="panel" data-testid="loaded-state">Status: Waiting to load.</div>
+    </main>
+    <script>
+      const button = document.querySelector("[data-testid='load-button']");
+      const panel = document.querySelector("[data-testid='loaded-state']");
+
+      button.addEventListener("click", () => {
+        button.disabled = true;
+        panel.textContent = "Status: Loading...";
+        setTimeout(() => {
+          panel.textContent = "Status: Data loaded successfully. Fresh content is now visible.";
+        }, 700);
+      });
+    </script>
+  </body>
+</html>

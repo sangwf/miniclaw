@@ -82,6 +82,11 @@
 - A short per-turn browser-sequence note works better than relying on generic browser preferences alone, because it only activates when the user explicitly asks for ordered UI actions.
 - The repo had no remote and no README, but GitHub CLI was already authenticated as `sangwf`, so a minimal public release path was: add README, commit locally, create `sangwf/miniclaw` as a public repo, and push `main`.
 - On this machine, the Homebrew-managed `python3` rejects direct global `pip install` under PEP 668, but `python3 -m pip install --user --break-system-packages ...` works and still makes `playwright` importable from the default interpreter.
+- The current readability problem is mostly a presentation-layer issue: welcome text, tool traces, usage logs, errors, and final answers all share nearly the same visual weight in the plain-text REPL.
+- `rich` is a good fit here because it can improve hierarchy with panels, dim log lines, and styled prompts while keeping a plain-text fallback for environments where it is missing.
+- The Chinese backspace artifact is a display-path regression, not a content-path regression: the submitted text is already correct, but `stdin.readline()` on the interactive TTY path is not a good replacement for Python's normal line-editing behavior when IME/CJK input is involved.
+- A practical compromise is to use `input()` only for the first interactive line on real `sys.stdin`, then keep the existing select-based drain to coalesce any additional pasted lines that arrive immediately after the first newline.
+- For CJK input, it is not enough to switch back to `input()` if the prompt is still rendered separately beforehand. The interactive prompt text itself should also be owned by `input()` so readline/libedit can account for prompt width and cursor movement consistently.
 
 ## Technical Decisions
 | Decision | Rationale |
@@ -155,3 +160,6 @@
 - The live `browser_*` tools can now navigate, snapshot, act, extract, and close against those same fixtures in a Playwright-enabled environment.
 - The same live `browser_*` tools also complete a simple public-web flow on Wikipedia under the default `python3` environment; malformed selectors are returned as structured tool errors instead of raw crashes.
 - After tightening the prompts, the live agent now follows the public-web Wikipedia flow in order: open `wikipedia.org`, type `Andrej Karpathy`, submit via the page input, and only then summarize the article content without falling back to `web_search`.
+- The upgraded REPL now benefits from four visual tiers: a welcome panel, dim operational logs (`tool`/`llm`), a styled `You >` prompt, and a bordered final-answer panel for `Claw`.
+- After restoring `input()` on the real TTY path, the REPL keeps the richer visual layer while delegating actual line editing back to the terminal/readline path that handles CJK backspace more reliably.
+- The best compromise is asymmetric: keep the rich welcome/log/reply rendering, but let the real interactive prompt itself fall back to a plain `input("You > ")` string on TTY stdin.

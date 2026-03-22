@@ -259,6 +259,17 @@
 | Public-web browser smoke | Direct `ToolRegistry.run(...)` calls against `https://www.wikipedia.org/` to search for `Andrej Karpathy` and extract the destination page text using default `python3` | Real public-site navigation, typing, clicking, extraction, and close all work in the default interpreter | Passed (`current_url=https://en.wikipedia.org/wiki/Andrej_Karpathy`) | ✓ |
 | Live ordered-browser agent smoke | Real `Agent.run_turn(...)` with `gpt-5.4-mini`: `打开 wikipedia，搜索 Andrej Karpathy，再总结首页前两段` | The agent should open Wikipedia first, then type/search on-page, and summarize from the browser session without falling back to generic web tools | Passed (`browser_navigate -> browser_act(type) -> browser_act(press)` then final reply) | ✓ |
 | Public GitHub release | `gh repo create sangwf/miniclaw --public --source=... --remote=origin --push` | Create a public repository and push the current `main` branch | Passed (`https://github.com/sangwf/miniclaw`) | ✓ |
+| Public GitHub revert | `git revert --no-edit e8fc5af && git push origin main` | Safely undo the bad public commit without rewriting history | Passed (`f81aa3e`) | ✓ |
+| Built-in `input()` CJK PTY probe | `python3 -c "line = input(...)"` then send `你好世界` + two backspaces | Backspace should remove whole characters without corrupting the final buffer | Failed (`RESULT: '你好世\\udce7'`) | ✗ |
+| Raw `stdin.readline()` CJK PTY probe | `python3 -c "sys.stdin.readline()"` then send `你好世界` + two backspaces | Backspace should remove whole characters without corrupting the final buffer | Failed (`RESULT: '你好世\\udce7'`) | ✗ |
+| `prompt_toolkit` CJK PTY probe | `prompt_toolkit.prompt(...)` then send `你好世界` + two backspaces | Backspace should remove whole characters and leave `你好` | Passed (`RESULT: '你好'`) | ✓ |
+| `prompt_toolkit` bracketed-paste PTY probe | `prompt_toolkit` first-line read plus existing drain logic, then send bracketed-paste `alpha\\nbeta\\ngamma` | Multiline pasted content should still be preserved | Passed (`RESULT: 'alpha\\nbeta\\ngamma'`) | ✓ |
+| Current `main.py` CJK PTY probe after `prompt_toolkit` integration | Import `_read_user_text(sys.stdin)` from the live CLI module, then send `你好世界` + two backspaces | The actual CLI reader should return `你好` rather than a corrupted trailing byte | Passed (`RESULT: '你好'`) | ✓ |
+| Current `main.py` bracketed-paste PTY probe after `prompt_toolkit` integration | Import `_read_user_text(sys.stdin)` from the live CLI module, then send bracketed-paste `alpha\\nbeta\\ngamma` | The actual CLI reader should still preserve pasted multiline content | Passed (`RESULT: 'alpha\\nbeta\\ngamma'`) | ✓ |
+| Rich dependency availability | `python3 -c "import main; print(main.RICH_AVAILABLE)"` | The restored terminal UI path should be active in the default environment | Passed (`RICH_AVAILABLE=True`) | ✓ |
+| Rich welcome-panel PTY probe | Launch `python3 main.py` in a PTY, wait for startup, then send `quit` | Startup should render the boxed `miniclaw` panel instead of plain text | Passed (`╭─ miniclaw ... ╰`) | ✓ |
+| Current `main.py` CJK PTY probe after Rich UI restore | Import `_read_user_text(sys.stdin)` from the live CLI module, then send `你好世界` + two backspaces | Restoring the UI layer should not break the CJK deletion fix | Passed (`RESULT: '你好'`) | ✓ |
+| Current `main.py` bracketed-paste PTY probe after Rich UI restore | Import `_read_user_text(sys.stdin)` from the live CLI module, then send bracketed-paste `alpha\\nbeta\\ngamma` | Restoring the UI layer should not break multiline pasted input | Passed (`RESULT: 'alpha\\nbeta\\ngamma'`) | ✓ |
 
 ## Error Log
 | Timestamp | Error | Attempt | Resolution |
@@ -269,15 +280,16 @@
 | 2026-03-21 | `python -m playwright install chromium` failed because `playwright` was not yet installed in the temp venv | 1 | Finished `pip install -r requirements-browser.txt`, then reran the browser install successfully |
 | 2026-03-21 | Browser support needed to stay lightweight when Playwright is absent | 1 | Moved browser imports behind `load_playwright()` so non-browser commands and document modes still run without the dependency |
 | 2026-03-21 | Homebrew `python3` blocked a direct `pip install` with `externally-managed-environment` | 1 | Installed Playwright with `python3 -m pip install --user --break-system-packages -r requirements-browser.txt` and then ran `python3 -m playwright install chromium` |
+| 2026-03-23 | The first local attempt to fix the Chinese deletion issue did not resolve the real bug | 1 | Reverted commit `e8fc5af` on GitHub, then switched to isolated PTY experiments before changing the input backend again |
 
 ## 5-Question Reboot Check
 | Question | Answer |
 |----------|--------|
-| Where am I? | Phase 14 complete |
-| Where am I going? | The next phase is turning the current browser tools into a more agent-friendly experience with stronger element targeting and richer browser state management |
+| Where am I? | Phase 16 complete |
+| Where am I going? | The next phase is user acceptance: confirm that the restored Rich terminal UI and the local `prompt_toolkit` input path both behave correctly on the real desktop terminal before committing and pushing |
 | What's the goal? | Build an LLM-first coding shell with real workspace state, safe editing primitives, usable terminal interaction, basic external research, lightweight persistent memory, persisted chat transcripts, cache-friendly prompts, direct Twitter/X read tools, and a harness-first browser capability |
 | What have I learned? | Natural-language interaction can stay flexible if workspace state and tool boundaries are enforced in runtime |
-| What have I done? | Implemented session state, workspace-aware tools, visible tool traces, a structured patch tool, paste-friendly multiline input, basic web research tools, a small persistent Markdown memory, per-session chat transcripts, prompt-cache-aware usage reporting, direct read-only Twitter/X tools, a harness-first browser design package, a passing standalone browser acceptance runner, first-class `browser_*` tools backed by the shared browser runtime, and published the project as a public GitHub repository |
+| What have I done? | Implemented session state, workspace-aware tools, visible tool traces, a structured patch tool, paste-friendly multiline input, basic web research tools, a small persistent Markdown memory, per-session chat transcripts, prompt-cache-aware usage reporting, direct read-only Twitter/X tools, a harness-first browser design package, a passing standalone browser acceptance runner, first-class `browser_*` tools backed by the shared browser runtime, published the project as a public GitHub repository, reverted the bad public input/UI commit, isolated the Chinese backspace issue with PTY-level experiments, and restored the Rich terminal UI on top of the local `prompt_toolkit` input path |
 
 ## Research Notes
 - Reviewed the OpenClaw-RL paper ([arXiv:2603.10165](https://arxiv.org/pdf/2603.10165)) and project repository ([Gen-Verse/OpenClaw-RL](https://github.com/Gen-Verse/OpenClaw-RL)).
@@ -287,3 +299,6 @@
 - Implemented the first standalone browser harness runner and confirmed that the initial five acceptance tasks pass end-to-end in a temporary Playwright environment.
 - Refactored the browser execution layer into a shared runtime module and confirmed that both the standalone harness and the live `browser_*` tools work against the same fixture pages.
 - Confirmed the same live browser tools also work against a real public site by navigating Wikipedia, typing a search, clicking submit, extracting page text, and closing the session under the default `python3` environment.
+- Compared three interactive input backends under PTY control and found that only `prompt_toolkit` returned the expected `你好` after two backspaces on `你好世界`.
+- Confirmed that `prompt_toolkit` also preserved multiline content when fed as bracketed paste, which keeps the door open for replacing only the first interactive line reader without losing paste behavior.
+- Reattached the Rich terminal UI layer after the GitHub revert and confirmed in a PTY that the boxed welcome panel is back while the `prompt_toolkit`-based CJK and bracketed-paste probes still pass.

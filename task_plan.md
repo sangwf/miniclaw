@@ -4,7 +4,7 @@
 Upgrade `miniclaw` from a plain CLI chat loop into an LLM-first coding shell with real session workspace state, visible tool-call traces in the terminal, safer temporary execution primitives, a safer patch-based edit path for existing files, paste-friendly multiline input, basic web research tools, a small persistent Markdown memory, a few high-value read-only Twitter/X tools, and a harness-first browser capability with deterministic fixtures, a standalone runner, and first-class `browser_*` tools.
 
 ## Current Phase
-Phase 14 complete
+Phase 16 complete
 
 ## Phases
 ### Phase 1: Requirements & Discovery
@@ -107,6 +107,20 @@ Phase 14 complete
 - [x] Create the public GitHub repository and push `main`
 - **Status:** complete
 
+### Phase 15: CJK Input Validation
+- [x] Revert the bad public GitHub commit instead of rewriting public history
+- [x] Run controlled PTY experiments for Chinese input plus backspace
+- [x] Compare built-in TTY readers with a `prompt_toolkit` path
+- [x] Validate multiline bracketed paste on the candidate path
+- [x] Integrate the candidate path locally without pushing it yet
+- **Status:** complete
+
+### Phase 16: Restore Terminal UI After Revert
+- [x] Separate the Rich UI layer from the reverted input-path commit
+- [x] Reapply the colored welcome, tool, usage, and reply rendering on top of the `prompt_toolkit` reader
+- [x] Verify that Rich UI output does not regress CJK backspace or multiline paste behavior
+- **Status:** complete
+
 ## Key Questions
 1. How can workspace state be real and mutable without requiring explicit slash commands?
 2. Which tools are enough to start coding inside a workspace?
@@ -146,6 +160,8 @@ Phase 14 complete
 | Share browser execution code between the standalone harness and the tool layer | Separate browser implementations would drift and invalidate the harness-first design |
 | Treat explicit browser interaction requests as ordered UI steps | Users may care about the actual path through the page, not just the final answer, and honoring that path reduces unnecessary fallbacks to generic web tools |
 | Add a minimal README before publishing the repository | A public repo should at least explain what the project is, how to run it, and what the browser harness files are for |
+| Prefer `prompt_toolkit` on the real interactive TTY path | Controlled PTY experiments show better character-level handling for Chinese backspace while still preserving multiline bracketed paste |
+| Restore the Rich terminal UI independently of the input backend | Terminal styling and input correctness should be validated separately so a bad input fix does not force a full UX rollback |
 
 ## Errors Encountered
 | Error | Attempt | Resolution |
@@ -181,3 +197,5 @@ Phase 14 complete
 - Browser runtime logic now lives in `browser_runtime.py` and is shared by both the standalone harness runner and the `browser_*` tools.
 - When the user explicitly says to open a site and then search, click, or type inside it, the agent should stay on the browser path and execute those steps in order before summarizing.
 - The public remote for this project is `https://github.com/sangwf/miniclaw`.
+- A `prompt_toolkit`-based first-line reader currently looks like the strongest local fix for CJK deletion artifacts: in the PTY experiment it returned the expected `你好` after two backspaces, and it preserved `alpha\\nbeta\\ngamma` when fed as bracketed paste.
+- The Rich terminal UI should remain a separate layer over the current input path: welcome panel, colored tool/LLM lines, and boxed Markdown replies can be reintroduced without changing how the first line is read.

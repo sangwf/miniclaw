@@ -1,2 +1,3 @@
 openai>=2.21.0
-
+prompt_toolkit>=3.0.52
+rich>=13.9.0

@@ -117,6 +117,8 @@
 | Make the browser harness standalone before wiring it into agent tools | This separates executor validation from agent-loop behavior and makes failures easier to localize |
 | Keep the browser runtime lazy-imported and shared | This preserves lightweight non-browser execution while preventing harness/tool drift |
 | Key the live browser session off `SessionState.session_id` | One browser session per REPL session is a simple and sufficient first policy |
+| Prefer `prompt_toolkit` over the built-in TTY readers for the real interactive path | Controlled PTY experiments showed better character-level handling for Chinese backspace while still preserving multiline bracketed paste |
+| Restore the Rich terminal UI independently of the input backend | Terminal styling and input correctness need separate validation so a bad input fix does not force a full UX rollback |
 
 ## Issues Encountered
 | Issue | Resolution |
@@ -155,3 +157,8 @@
 - The live `browser_*` tools can now navigate, snapshot, act, extract, and close against those same fixtures in a Playwright-enabled environment.
 - The same live `browser_*` tools also complete a simple public-web flow on Wikipedia under the default `python3` environment; malformed selectors are returned as structured tool errors instead of raw crashes.
 - After tightening the prompts, the live agent now follows the public-web Wikipedia flow in order: open `wikipedia.org`, type `Andrej Karpathy`, submit via the page input, and only then summarize the article content without falling back to `web_search`.
+- In the PTY experiment, both the built-in `input()` path and the raw `stdin.readline()` path still produced a corrupted trailing byte after entering `你好世界`, backspacing twice, and submitting.
+- The same PTY experiment through `prompt_toolkit` returned the expected final string `你好`, which is the first concrete signal so far that this bug needs a different input backend rather than more prompt rendering tweaks.
+- A second PTY experiment with bracketed paste preserved `alpha\nbeta\ngamma` through the `prompt_toolkit` path, so multiline paste does not appear to be inherently lost there.
+- After wiring `prompt_toolkit` into the live `_read_user_text(sys.stdin)` path in `main.py`, the same PTY probes still returned `RESULT: '你好'` and `RESULT: 'alpha\\nbeta\\ngamma'`, so the fix is no longer just an isolated toy probe.
+- After restoring the Rich welcome/log/reply rendering on top of the same input path, a PTY startup probe showed the boxed `miniclaw` panel again, and the live `_read_user_text(sys.stdin)` PTY probes still returned `RESULT: '你好'` and `RESULT: 'alpha\\nbeta\\ngamma'`.

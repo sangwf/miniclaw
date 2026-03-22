@@ -213,46 +213,6 @@
   - `/Users/sangwf/code/miniclaw/findings.md` (updated)
   - `/Users/sangwf/code/miniclaw/progress.md` (updated)
 
-### Phase 15: Terminal UI Readability
-- **Status:** complete
-- Actions taken:
-  - Reviewed the existing plain-text REPL output and kept the agent/runtime logic unchanged.
-  - Added `rich`-backed rendering for the welcome area, prompt, tool logs, usage logs, errors, and final replies.
-  - Rendered final assistant replies inside a bordered Markdown panel titled `Claw`.
-  - Rendered the startup state inside a compact welcome panel and changed the prompt to `You >`.
-  - Kept the old plain-text behavior as a fallback when `rich` is unavailable.
-  - Added `rich` to `requirements.txt`.
-- Files created/modified:
-  - `/Users/sangwf/code/miniclaw/main.py` (updated)
-  - `/Users/sangwf/code/miniclaw/requirements.txt` (updated)
-  - `/Users/sangwf/code/miniclaw/task_plan.md` (updated)
-  - `/Users/sangwf/code/miniclaw/findings.md` (updated)
-  - `/Users/sangwf/code/miniclaw/progress.md` (updated)
-
-### Phase 16: CJK Input Editing Fix
-- **Status:** complete
-- Actions taken:
-  - Diagnosed the Chinese backspace artifact as an input-path regression introduced when the REPL switched from `input()` to raw `stdin.readline()` for the first interactive line.
-  - Changed `_read_user_text(...)` so real `sys.stdin` TTY sessions use `input()` for the first line and then keep the existing select-based drain for any immediately pasted follow-up lines.
-  - Kept the non-interactive and custom-stream code paths on the simpler `stream.readline()` behavior.
-- Files created/modified:
-  - `/Users/sangwf/code/miniclaw/main.py` (updated)
-  - `/Users/sangwf/code/miniclaw/task_plan.md` (updated)
-  - `/Users/sangwf/code/miniclaw/findings.md` (updated)
-  - `/Users/sangwf/code/miniclaw/progress.md` (updated)
-
-### Phase 17: Prompt Ownership Fix
-- **Status:** complete
-- Actions taken:
-  - Refined the CJK deletion root cause: even after restoring `input()`, separately rendering a styled prompt before calling `input()` can still desynchronize prompt width accounting from readline/libedit's editing model.
-  - Changed the real interactive TTY path to call `input("You > ")` directly.
-  - Kept the styled `_print_prompt()` path only for non-interactive or custom-stream scenarios.
-- Files created/modified:
-  - `/Users/sangwf/code/miniclaw/main.py` (updated)
-  - `/Users/sangwf/code/miniclaw/task_plan.md` (updated)
-  - `/Users/sangwf/code/miniclaw/findings.md` (updated)
-  - `/Users/sangwf/code/miniclaw/progress.md` (updated)
-
 ## Test Results
 | Test | Input | Expected | Actual | Status |
 |------|-------|----------|--------|--------|
@@ -299,12 +259,6 @@
 | Public-web browser smoke | Direct `ToolRegistry.run(...)` calls against `https://www.wikipedia.org/` to search for `Andrej Karpathy` and extract the destination page text using default `python3` | Real public-site navigation, typing, clicking, extraction, and close all work in the default interpreter | Passed (`current_url=https://en.wikipedia.org/wiki/Andrej_Karpathy`) | ✓ |
 | Live ordered-browser agent smoke | Real `Agent.run_turn(...)` with `gpt-5.4-mini`: `打开 wikipedia，搜索 Andrej Karpathy，再总结首页前两段` | The agent should open Wikipedia first, then type/search on-page, and summarize from the browser session without falling back to generic web tools | Passed (`browser_navigate -> browser_act(type) -> browser_act(press)` then final reply) | ✓ |
 | Public GitHub release | `gh repo create sangwf/miniclaw --public --source=... --remote=origin --push` | Create a public repository and push the current `main` branch | Passed (`https://github.com/sangwf/miniclaw`) | ✓ |
-| Rich UI compile | `python3 -m py_compile main.py` | The new presentation layer compiles cleanly | Passed | ✓ |
-| Rich UI startup smoke | Launch `python3 main.py` in a TTY and immediately exit | Welcome panel, styled prompt, and clean exit all render correctly | Passed | ✓ |
-| CJK input-path compile | `python3 -m py_compile main.py` | The new first-line input path compiles cleanly | Passed | ✓ |
-| CJK input-path startup smoke | Launch `python3 main.py` in a TTY and immediately exit after the `input()`-based prompt path is active | Startup panel, prompt, and exit still behave normally after restoring `input()` on real TTY stdin | Passed | ✓ |
-| Prompt-ownership compile | `python3 -m py_compile main.py` | The prompt ownership change compiles cleanly | Passed | ✓ |
-| Prompt-ownership startup smoke | Launch `python3 main.py` in a TTY and immediately exit after switching to `input(\"You > \")` on the interactive path | Welcome panel, prompt, and exit still behave normally with prompt ownership moved into `input()` | Passed | ✓ |
 
 ## Error Log
 | Timestamp | Error | Attempt | Resolution |
@@ -319,11 +273,11 @@
 ## 5-Question Reboot Check
 | Question | Answer |
 |----------|--------|
-| Where am I? | Phase 17 complete |
+| Where am I? | Phase 14 complete |
 | Where am I going? | The next phase is turning the current browser tools into a more agent-friendly experience with stronger element targeting and richer browser state management |
 | What's the goal? | Build an LLM-first coding shell with real workspace state, safe editing primitives, usable terminal interaction, basic external research, lightweight persistent memory, persisted chat transcripts, cache-friendly prompts, direct Twitter/X read tools, and a harness-first browser capability |
 | What have I learned? | Natural-language interaction can stay flexible if workspace state and tool boundaries are enforced in runtime |
-| What have I done? | Implemented session state, workspace-aware tools, visible tool traces, a structured patch tool, paste-friendly multiline input, basic web research tools, a small persistent Markdown memory, per-session chat transcripts, prompt-cache-aware usage reporting, direct read-only Twitter/X tools, a harness-first browser design package, a passing standalone browser acceptance runner, first-class `browser_*` tools backed by the shared browser runtime, published the project as a public GitHub repository, upgraded the terminal UI with a richer visual hierarchy, and fixed the interactive CJK backspace display regression by restoring `input()` and prompt ownership on the real TTY path |
+| What have I done? | Implemented session state, workspace-aware tools, visible tool traces, a structured patch tool, paste-friendly multiline input, basic web research tools, a small persistent Markdown memory, per-session chat transcripts, prompt-cache-aware usage reporting, direct read-only Twitter/X tools, a harness-first browser design package, a passing standalone browser acceptance runner, first-class `browser_*` tools backed by the shared browser runtime, and published the project as a public GitHub repository |
 
 ## Research Notes
 - Reviewed the OpenClaw-RL paper ([arXiv:2603.10165](https://arxiv.org/pdf/2603.10165)) and project repository ([Gen-Verse/OpenClaw-RL](https://github.com/Gen-Verse/OpenClaw-RL)).

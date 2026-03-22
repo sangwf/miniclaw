@@ -11,30 +11,10 @@ from llm import DEFAULT_MODEL, LLMClient
 from session import SessionState
 from tools import build_default_registry
 
-try:
-    from rich import box
-    from rich.console import Console
-    from rich.markdown import Markdown
-    from rich.markup import escape
-    from rich.panel import Panel
-    from rich.table import Table
-    from rich.text import Text
-
-    RICH_AVAILABLE = True
-except Exception:  # pragma: no cover - optional UI dependency
-    box = None
-    Console = None
-    Markdown = None
-    Panel = None
-    Table = None
-    Text = None
-    RICH_AVAILABLE = False
-
 
 # Keep a short linger after each submitted line so desktop terminal paste bursts
 # with slight inter-line jitter still arrive as one logical message.
 PASTE_WINDOW_SEC = 0.2
-CONSOLE = Console(highlight=False, soft_wrap=True) if RICH_AVAILABLE else None
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -60,12 +40,6 @@ def _clip(text: str, limit: int = 160) -> str:
     if len(text) <= limit:
         return text
     return f"{text[:limit - 3]}..."
-
-
-def _escape(text: str) -> str:
-    if RICH_AVAILABLE:
-        return escape(text)
-    return text
 
 
 def _summarize_patch_text(patch_text: str) -> str:
@@ -294,33 +268,10 @@ def _summarize_tool_result(tool_name: str, raw_result: str) -> str:
 def _print_tool_event(event: ToolExecutionEvent) -> None:
     if event.phase == "start":
         summary = _summarize_tool_arguments(event.tool_name, event.arguments)
-        if CONSOLE is not None:
-            CONSOLE.print(
-                Text.assemble(
-                    ("tool", "bold cyan"),
-                    ("  ", ""),
-                    (event.tool_name, "cyan"),
-                    ("  ", ""),
-                    (_escape(summary), "dim"),
-                )
-            )
-        else:
-            print(f"[tool] {event.tool_name} {summary}")
+        print(f"[tool] {event.tool_name} {summary}")
     elif event.phase == "finish":
         summary = _summarize_tool_result(event.tool_name, event.result or "")
-        is_error = summary.startswith("error=")
-        if CONSOLE is not None:
-            CONSOLE.print(
-                Text.assemble(
-                    ("tool", "bold red" if is_error else "bold green"),
-                    ("  ", ""),
-                    (event.tool_name, "red" if is_error else "green"),
-                    ("  ", ""),
-                    (_escape(summary), "red" if is_error else "dim"),
-                )
-            )
-        else:
-            print(f"[tool-result] {event.tool_name} {summary}")
+        print(f"[tool-result] {event.tool_name} {summary}")
 
 
 def _print_llm_usage(event: LLMUsageEvent) -> None:
@@ -336,83 +287,7 @@ def _print_llm_usage(event: LLMUsageEvent) -> None:
         parts.append(f"cached={usage.cached_tokens}")
     if event.tool_calls_requested:
         parts.append("tool_calls=yes")
-    summary = " ".join(parts)
-    if CONSOLE is not None:
-        CONSOLE.print(Text.assemble(("llm", "bold magenta"), ("  ", ""), (summary, "dim")))
-    else:
-        print(f"[llm] {summary}")
-
-
-def _print_prompt() -> None:
-    if CONSOLE is not None:
-        CONSOLE.print(Text.assemble(("You", "bold bright_cyan"), (" > ", "bold bright_cyan")), end="")
-    else:
-        print("> ", end="", flush=True)
-
-
-def _interactive_prompt_text() -> str:
-    return "You > "
-
-
-def _print_welcome(session: SessionState, model: str) -> None:
-    if CONSOLE is None:
-        print(f"miniclaw ready ({model}). Workspace: {session.workspace_root}")
-        if session.resume_transcript_path is not None:
-            print(f"Recent transcript: {session.resume_transcript_path}")
-        print("Type 'exit' or 'quit' to leave.")
-        return
-
-    grid = Table.grid(padding=(0, 1))
-    grid.add_column(style="bold")
-    grid.add_column()
-    grid.add_row("Model", model)
-    grid.add_row("Workspace", str(session.workspace_root))
-    if session.resume_transcript_path is not None:
-        grid.add_row("Recent", str(session.resume_transcript_path))
-    grid.add_row("Exit", "Type 'exit' or 'quit' to leave.")
-    CONSOLE.print(
-        Panel(
-            grid,
-            title="miniclaw",
-            title_align="left",
-            border_style="bright_blue",
-            box=box.ROUNDED,
-            padding=(0, 1),
-        )
-    )
-
-
-def _print_interrupt() -> None:
-    if CONSOLE is not None:
-        CONSOLE.print(Text("Interrupted.", style="bold yellow"))
-    else:
-        print("\nInterrupted.")
-
-
-def _print_error(message: str) -> None:
-    if CONSOLE is not None:
-        CONSOLE.print(Text.assemble(("error", "bold red"), ("  ", ""), (_escape(message), "red")))
-    else:
-        print(f"error: {message}", file=sys.stderr)
-
-
-def _print_reply(reply: str) -> None:
-    if CONSOLE is not None and Markdown is not None and Panel is not None:
-        CONSOLE.print()
-        CONSOLE.print(
-            Panel(
-                Markdown(reply, code_theme="monokai"),
-                title="Claw",
-                title_align="left",
-                border_style="white",
-                box=box.ROUNDED,
-                padding=(0, 1),
-            )
-        )
-        CONSOLE.print()
-        return
-
-    print(reply)
+    print(f"[llm] {' '.join(parts)}")
 
 
 def _supports_paste_coalescing(stream: TextIO) -> bool:
@@ -423,23 +298,14 @@ def _supports_paste_coalescing(stream: TextIO) -> bool:
 
 
 def _read_user_text(stream: TextIO, *, paste_window_sec: float = PASTE_WINDOW_SEC) -> str | None:
-    # Use Python's normal interactive line editing on the real TTY stdin.
-    # This keeps IME/backspace handling stable for CJK input while still
-    # allowing us to drain additional pasted lines afterwards.
-    if stream is sys.stdin and _supports_paste_coalescing(stream):
-        try:
-            first_line = input(_interactive_prompt_text())
-        except EOFError:
-            return None
-        lines = [first_line]
-    else:
-        _print_prompt()
-        first_line = stream.readline()
-        if first_line == "":
-            return None
-        lines = [first_line.rstrip("\n")]
-        if not _supports_paste_coalescing(stream):
-            return "\n".join(lines).strip()
+    print("> ", end="", flush=True)
+    first_line = stream.readline()
+    if first_line == "":
+        return None
+
+    lines = [first_line.rstrip("\n")]
+    if not _supports_paste_coalescing(stream):
+        return "\n".join(lines).strip()
 
     while True:
         ready, _, _ = select.select([stream], [], [], paste_window_sec)
@@ -468,22 +334,20 @@ def main() -> int:
         llm_usage_handler=_print_llm_usage,
     )
 
-    _print_welcome(session, llm.model)
+    print(f"miniclaw ready ({llm.model}). Workspace: {session.workspace_root}")
+    if session.resume_transcript_path is not None:
+        print(f"Recent transcript: {session.resume_transcript_path}")
+    print("Type 'exit' or 'quit' to leave.")
 
     while True:
         try:
             user_text = _read_user_text(sys.stdin)
         except KeyboardInterrupt:
-            if CONSOLE is not None:
-                CONSOLE.print()
-            _print_interrupt()
+            print("\nInterrupted.")
             return 130
 
         if user_text is None:
-            if CONSOLE is not None:
-                CONSOLE.print()
-            else:
-                print()
+            print()
             return 0
 
         if not user_text:
@@ -494,10 +358,10 @@ def main() -> int:
         try:
             reply = agent.run_turn(user_text)
         except Exception as exc:
-            _print_error(str(exc))
+            print(f"error: {exc}", file=sys.stderr)
             continue
 
-        _print_reply(reply)
+        print(reply)
 
 
 if __name__ == "__main__":

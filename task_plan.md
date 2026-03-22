@@ -4,7 +4,7 @@
 Upgrade `miniclaw` from a plain CLI chat loop into an LLM-first coding shell with real session workspace state, visible tool-call traces in the terminal, safer temporary execution primitives, a safer patch-based edit path for existing files, paste-friendly multiline input, basic web research tools, a small persistent Markdown memory, a few high-value read-only Twitter/X tools, and a harness-first browser capability with deterministic fixtures, a standalone runner, and first-class `browser_*` tools.
 
 ## Current Phase
-Phase 17 complete
+Phase 14 complete
 
 ## Phases
 ### Phase 1: Requirements & Discovery
@@ -107,28 +107,6 @@ Phase 17 complete
 - [x] Create the public GitHub repository and push `main`
 - **Status:** complete
 
-### Phase 15: Terminal UI Readability
-- [x] Review the current REPL output flow and identify readability problems
-- [x] Add a styled terminal renderer without changing the agent loop itself
-- [x] Use stronger visual separation for welcome state, tool logs, usage logs, and final replies
-- [x] Keep a plain-text fallback when `rich` is unavailable
-- [x] Verify startup and prompt behavior in a real TTY session
-- **Status:** complete
-
-### Phase 16: CJK Input Editing Fix
-- [x] Diagnose why Chinese input visually leaves stale characters when backspacing
-- [x] Restore interactive first-line reading to Python's normal line-editing path on the real TTY
-- [x] Keep multiline paste coalescing for follow-up pasted lines
-- [x] Verify compile and interactive startup/exit after the input-path change
-- **Status:** complete
-
-### Phase 17: Prompt Ownership Fix
-- [x] Refine the root-cause analysis for CJK deletion artifacts
-- [x] Let `input()` own the actual prompt string on the interactive TTY path
-- [x] Keep the styled prompt renderer only for non-interactive/custom stream paths
-- [x] Verify compile and interactive startup/exit after the prompt-path change
-- **Status:** complete
-
 ## Key Questions
 1. How can workspace state be real and mutable without requiring explicit slash commands?
 2. Which tools are enough to start coding inside a workspace?
@@ -168,9 +146,6 @@ Phase 17 complete
 | Share browser execution code between the standalone harness and the tool layer | Separate browser implementations would drift and invalidate the harness-first design |
 | Treat explicit browser interaction requests as ordered UI steps | Users may care about the actual path through the page, not just the final answer, and honoring that path reduces unnecessary fallbacks to generic web tools |
 | Add a minimal README before publishing the repository | A public repo should at least explain what the project is, how to run it, and what the browser harness files are for |
-| Add `rich` as the default terminal presentation layer while keeping a fallback | The main readability issue is visual hierarchy, not missing content; `rich` solves that cleanly without touching agent/runtime logic |
-| Use `input()` for the first interactive line on real TTY stdin, then drain additional pasted lines separately | Python's normal readline/editing path handles IME and backspace behavior more reliably than raw `stdin.readline()` |
-| Let `input()` render the interactive prompt text itself on the real TTY path | If a styled prompt is printed first and `input()` takes over afterwards, prompt display width and editing width can drift apart for CJK input |
 
 ## Errors Encountered
 | Error | Attempt | Resolution |
@@ -206,6 +181,3 @@ Phase 17 complete
 - Browser runtime logic now lives in `browser_runtime.py` and is shared by both the standalone harness runner and the `browser_*` tools.
 - When the user explicitly says to open a site and then search, click, or type inside it, the agent should stay on the browser path and execute those steps in order before summarizing.
 - The public remote for this project is `https://github.com/sangwf/miniclaw`.
-- The REPL should visually separate the main answer from operational logs; welcome state, tool traces, LLM usage, and final replies should not all share the same plain-text style.
-- Interactive CJK editing should prioritize correct terminal behavior over perfect symmetry with the custom paste reader; the first line can use `input()` while extra pasted lines are still drained manually afterwards.
-- On the real TTY path, prompt ownership should stay with `input()` itself. Styled prompt rendering is fine for custom/non-interactive paths, but not if it interferes with cursor-width accounting for CJK editing.
